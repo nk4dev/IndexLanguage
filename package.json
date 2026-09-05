@@ -1,16 +1,17 @@
 {
-  "name": "wasmtest",
-  "version": "0.0.12",
+  "name": "indexlanguage",
+  "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "wasm-pack build --target nodejs",
     "build:web": "wasm-pack build --target web --out-dir examples/pkg",
-    "start": "node ./examples/index.js",
+    "start": "node ./examples/index.js run ./examples/samples/fib.il",
     "serve": "bunx serve .",
+    "test": "cargo test",
     "swc": "npx swc ./pkg/il_compiler.js -o examples/com.js",
-    "all": "yarn build && yarn start"
+    "all": "bun run build && bun run start"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",

@@ -2,30 +2,42 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
-    <title>hello-wasm example</title>
+    <title>IndexLanguage playground</title>
     <style>
+      :root { color-scheme: dark; }
       body {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        margin: 2rem;
+        margin: 0;
+        padding: 1.5rem;
         background: #1e1e1e;
         color: #d4d4d4;
       }
-      h1 { font-size: 1rem; color: #9cdcfe; }
-      #controls {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
+      h1 { font-size: 1rem; color: #9cdcfe; margin: 0 0 1rem; }
+      h1 small { color: #6a9955; font-weight: normal; }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
       }
-      #args {
-        flex: 1;
-        font: inherit;
-        padding: 0.4rem 0.6rem;
+      @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+      label { display: block; font-size: 0.8rem; color: #858585; margin-bottom: 0.35rem; }
+      textarea, pre {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 16rem;
+        margin: 0;
         background: #000;
         color: #d4d4d4;
         border: 1px solid #333;
         border-radius: 6px;
+        padding: 0.75rem;
+        font: inherit;
+        white-space: pre;
+        overflow: auto;
+        resize: vertical;
       }
-      #run {
+      #controls { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+      button {
         font: inherit;
         padding: 0.4rem 1rem;
         background: #0e639c;
@@ -34,29 +46,60 @@
         border-radius: 6px;
         cursor: pointer;
       }
-      #run:hover { background: #1177bb; }
-      #run:disabled { background: #333; cursor: not-allowed; }
+      button:hover { background: #1177bb; }
+      button:disabled { background: #333; cursor: not-allowed; }
+      button.secondary { background: #3a3d41; }
+      button.secondary:hover { background: #4a4d51; }
       #console {
         white-space: pre-wrap;
         word-break: break-word;
         background: #000;
         border: 1px solid #333;
         border-radius: 6px;
-        padding: 1rem;
-        min-height: 8rem;
+        padding: 0.75rem;
+        min-height: 5rem;
+        margin-top: 1rem;
       }
       #console .log { color: #d4d4d4; }
       #console .warn { color: #dcdcaa; }
       #console .error { color: #f48771; }
+      #console .cmd { color: #6a9955; }
     </style>
   </head>
   <body>
-    <h1>index lang — console output</h1>
-    <div id="controls">
-      <input id="args" type="text" value="--help" placeholder="argument (e.g. --help, --version)" />
-      <button id="run" disabled>Run</button>
+    <h1>IndexLanguage playground <small id="ver"></small></h1>
+
+    <div class="grid">
+      <div>
+        <label for="source">source (.il)</label>
+        <textarea id="source" spellcheck="false">
+fn fib(n: number): number {
+  if n < 2 { return n; }
+  return fib(n - 1) + fib(n - 2);
+}
+
+const count: number = 10;
+let i: number = 0;
+while i < count {
+  print("fib(" + i + ") = " + fib(i));
+  i = i + 1;
+}
+</textarea>
+      </div>
+      <div>
+        <label for="output">compiled JavaScript</label>
+        <pre id="output"></pre>
+      </div>
     </div>
+
+    <div id="controls">
+      <button id="run" disabled>Compile &amp; Run</button>
+      <button id="compile" class="secondary" disabled>Compile only</button>
+      <button id="clear" class="secondary">Clear console</button>
+    </div>
+
     <div id="console"></div>
+
     <script type="module" src="./browser.js"></script>
   </body>
 </html>

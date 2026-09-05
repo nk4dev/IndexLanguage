@@ -1,6 +1,6 @@
 [package]
 name = "il-compiler"
-version = "0.0.13"
+version = "0.1.0"
 edition = "2021"
 authors = ["nknighta <n.knight.pc0627@gmail.com>"]
 description = "tools of indexlanguage"
@@ -8,7 +8,7 @@ license = "MIT"
 repository = "https://github.com/nknighta/indexlanguage"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = "0.2"

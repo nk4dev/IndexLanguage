@@ -60,7 +60,52 @@ function passStringToWasm0(arg, malloc, realloc) {
     WASM_VECTOR_LEN = offset;
     return ptr;
 }
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_0.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
 /**
+ * Compile `src`, throwing a JS `Error` with diagnostics on failure.
+ * @param {string} src
+ * @returns {string}
+ */ module.exports.compile = function(src) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(src, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.compile(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0;
+            len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally{
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+};
+/**
+ * @returns {string}
+ */ module.exports.version = function() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.version();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally{
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+};
+/**
+ * Legacy entry point retained for the node example.
  * @param {string} name
  */ module.exports.main = function(name) {
     const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);

@@ -1,0 +1,169 @@
+# IndexLanguage Specification
+
+> Status: **v0.1 (prototype)** — the language is small and the type checker is
+> deliberately permissive. This document describes what the compiler in this
+> repository actually accepts today, and flags where it is headed.
+
+IndexLanguage (`il`) is a small, statically-typed language that **transpiles to
+readable ES2022 JavaScript**. The type system is TypeScript-flavored and
+*gradual*: `any` opts out of checking, and unresolved named types are treated as
+`any`.
+
+The pipeline is `lex → parse → check → emit`, implemented in Rust and shipped as
+WebAssembly (`src/lib.rs` exposes `compile(src) -> string`).
+
+---
+
+## 1. Lexical structure
+
+- **Encoding:** UTF-8 source.
+- **Comments:** `// line` and `/* block */` (block comments do not nest).
+- **Whitespace** is insignificant except as a token separator.
+- **Identifiers:** `[A-Za-z_][A-Za-z0-9_]*`.
+- **Number literals:** decimal integers and fractions — `0`, `42`, `3.14`.
+  All numbers are IEEE-754 doubles (JS `number`).
+- **String literals:** double-quoted, single line. Escapes: `\n \t \r \\ \"`.
+- **Booleans:** `true`, `false`.
+- **Keywords:** `fn let const return if else while true false`
+  `number string bool void any`.
+
+## 2. Types
+
+| Type      | Notes                                           |
+|-----------|-------------------------------------------------|
+| `number`  | double-precision float                          |
+| `string`  | UTF-16 string (JS semantics)                    |
+| `bool`    | `true` / `false`                                |
+| `void`    | absence of a value; default function return     |
+| `any`     | disables checking at that position              |
+| `T[]`     | array of `T` (e.g. `number[]`, `string[][]`)    |
+| `Name`    | any other identifier — currently treated as `any` (reserved for future user types) |
+
+### Assignability
+
+`A` is assignable to `B` when:
+
+- `A` and `B` are the same type, or
+- either side is `any`, or
+- both are arrays and their element types are assignable.
+
+There is **no** implicit `number` → `string` conversion, **except** that the
+binary `+` operator produces `string` when either operand is `string` (matching
+TypeScript).
+
+## 3. Declarations
+
+### Variables
+
+```
+let  name: Type = expr;   // reassignable
+const name: Type = expr;  // reassignment is a compile error
+```
+
+The `: Type` annotation is optional; when omitted the type is inferred from the
+initializer. An initializer is always required.
+
+### Functions
+
+```
+fn name(p1: T1, p2: T2): Ret {
+    // body
+}
+```
+
+- Parameter types are mandatory. The return annotation is optional and defaults
+  to `void`.
+- Functions are **hoisted**: they may be called before their definition (direct
+  recursion and mutual recursion both work).
+- `return expr;` — `expr` must be assignable to the declared return type.
+  `return;` is allowed and yields `void`.
+
+## 4. Statements
+
+| Statement    | Form                                             |
+|--------------|--------------------------------------------------|
+| expression   | `expr;`                                          |
+| block        | `{ ... }`                                        |
+| `if`         | `if cond { ... } else if cond { ... } else { ... }` — no parens around the condition; branches are always braced |
+| `while`      | `while cond { ... }` — no parens                 |
+| `return`     | `return expr;` / `return;`                       |
+
+`if` / `while` conditions must be `bool` (or `any`).
+
+## 5. Expressions
+
+Precedence, loosest to tightest:
+
+1. `=` (assignment; target must be a plain identifier)
+2. `||`
+3. `&&`
+4. `==` `!=`
+5. `<` `>` `<=` `>=`
+6. `+` `-`
+7. `*` `/` `%`
+8. unary `!` `-`
+9. call `f(...)`, index `a[i]`, member `a.b`
+10. primary: literals, identifiers, `[a, b, c]`, `( expr )`
+
+### Operator typing
+
+| Operators           | Operands            | Result   |
+|---------------------|---------------------|----------|
+| `+`                 | `number, number`    | `number` |
+| `+`                 | involves `string`   | `string` |
+| `- * / %`           | `number, number`    | `number` |
+| `< > <= >=`         | `number, number`    | `bool`   |
+| `== !=`             | any                 | `bool`   |
+| `&& \|\|`           | `bool, bool`        | `bool`   |
+| unary `!`           | `bool`              | `bool`   |
+| unary `-`           | `number`            | `number` |
+
+### Indexing and members
+
+- `array[i]` requires `i: number`, yields the element type.
+- `string[i]` yields `string`.
+- `.length` on a `string` or array yields `number`. Any other member access
+  requires the receiver to be `any`.
+
+## 6. Builtins
+
+| Name              | Signature            | Lowers to        |
+|-------------------|----------------------|------------------|
+| `print(...args)`  | `(any...) -> void`   | `console.log`    |
+
+## 7. Code generation
+
+Each `il` program compiles to a standalone JS module:
+
+```js
+// Generated by the IndexLanguage compiler (il).
+"use strict";
+const print = (...args) => console.log(...args);
+
+// ...your declarations, in source order...
+```
+
+Mapping is direct: `fn` → `function`, `let`/`const` → `let`/`const`,
+`if`/`while`/`return` unchanged, arrays and calls unchanged. Binary expressions
+are fully parenthesized for unambiguous precedence.
+
+## 8. Diagnostics
+
+Compilation fails with one error per line, formatted `line N: message`. All
+type errors in a program are reported together (the checker does not stop at the
+first). A failed compile produces no JavaScript.
+
+## 9. Not yet in the language
+
+Planned, but **not** implemented in v0.1:
+
+- `for` loops, `break` / `continue`
+- user-defined types: `struct` / `record`, unions, generics
+- `import` / `export` and a module system
+- object/record literals and property access typing
+- string interpolation
+- pattern matching
+- a real standard library (only `print` exists)
+- what the name **Index** should mean as a first-class language concept
+  (indexable collections? a document/outline model? reactive dependency
+  indexing?) — still open.
