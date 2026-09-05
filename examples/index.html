@@ -3,9 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <title>hello-wasm example</title>
+    <style>
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        margin: 2rem;
+        background: #1e1e1e;
+        color: #d4d4d4;
+      }
+      h1 { font-size: 1rem; color: #9cdcfe; }
+      #console {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #000;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 1rem;
+        min-height: 8rem;
+      }
+      #console .log { color: #d4d4d4; }
+      #console .warn { color: #dcdcaa; }
+      #console .error { color: #f48771; }
+    </style>
   </head>
   <body>
-    <p>open developer tool (F12)</p>
+    <h1>index lang — console output</h1>
+    <div id="console"></div>
     <script type="module" src="./browser.js"></script>
   </body>
 </html>
