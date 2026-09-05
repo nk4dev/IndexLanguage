@@ -1,4 +1,6 @@
-import init, { greet } from "./pkg/il_compiler.js";
+import init, { main } from "./pkg/il_compiler.js";
+
 init().then(() => {
-    greet("Holy fuck Microsoft!");
+    main("--help");
+    main("--version");
 });

@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "wasm-pack build --target nodejs",
+    "build:web": "wasm-pack build --target web --out-dir examples/pkg",
     "start": "node ./examples/index.js",
+    "serve": "bunx serve .",
     "swc": "npx swc ./pkg/il_compiler.js -o examples/com.js",
     "all": "yarn build && yarn start"
   },
